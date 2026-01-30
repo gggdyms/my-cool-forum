@@ -1,0 +1,904 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
+  <title>论坛原型</title>
+  <style>
+    :root{
+      --bg:#f2f4f5;
+      --card:#ffffff;
+      --text:#292929;
+      --sub:#888;
+      --line:#e0e0e0;
+      --primary:#66b1ff; /* 浅蓝按钮 */
+      --danger:#ff5d5d;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Segoe UI",Roboto,Arial,sans-serif;
+      background:var(--bg);
+      color:var(--text);
+      padding-bottom:70px;
+    }
+    .page{display:none}
+    .page.active{display:block}
+
+    /* Top banner (no radius) */
+    .header-banner{width:100%;height:180px;background:#ffadad;background-size:cover;background-position:center}
+
+    /* Home "未命名" strip */
+    .home-user-strip{
+      background:var(--card);
+      padding:0 15px 15px 15px;
+      border-bottom:1px solid var(--line);
+      margin-bottom:10px;
+    }
+    .home-avatar-row{
+      display:flex;justify-content:space-between;align-items:flex-end;
+      height:50px;margin-bottom:10px;
+    }
+    .home-big-avatar{
+      width:80px;height:80px;border-radius:50%;
+      background:#999;border:3px solid var(--card);
+      margin-top:-40px;position:relative;z-index:2;
+      background-size:cover;background-position:center;
+    }
+    .home-user-name{font-size:20px;font-weight:800;margin-bottom:4px}
+    .home-user-desc{font-size:13px;color:var(--sub)}
+    .btn{
+      border:none;border-radius:4px;
+      padding:7px 14px;font-weight:700;font-size:13px;
+      cursor:pointer;
+    }
+    .btn-primary{
+      background:var(--primary);color:#fff;
+      box-shadow:0 2px 6px rgba(102,177,255,.35);
+    }
+    .btn-ghost{
+      background:transparent;color:var(--text);
+      border:1px solid rgba(0,0,0,.15);
+    }
+    .btn-danger{
+      background:var(--danger);color:#fff;
+    }
+
+    /* Tabs */
+    .tabs{
+      display:flex;
+      gap:8px;
+      padding:0 12px 10px 12px;
+    }
+    .tab{
+      padding:6px 10px;
+      border:1px solid var(--line);
+      border-radius:999px;
+      font-size:13px;
+      color:var(--sub);
+      background:rgba(255,255,255,.6);
+    }
+    .tab.active{
+      border-color:rgba(102,177,255,.8);
+      color:#2b70ff;
+      background:rgba(102,177,255,.14);
+      font-weight:800;
+    }
+
+    /* Posts: tieba-like list */
+    .post-item{
+      background:var(--card);
+      padding:14px 15px;
+      border-bottom:1px solid var(--line);
+    }
+    .post-header{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+    .avatar{
+      width:36px;height:36px;border-radius:50%;
+      background:#ddd;background-size:cover;background-position:center;
+      flex:0 0 auto;
+    }
+    .post-name{font-weight:800;font-size:14px;color:#555;cursor:pointer}
+    .post-time{margin-left:auto;font-size:12px;color:#999}
+    .post-content{font-size:16px;line-height:1.55;margin-bottom:8px;white-space:pre-wrap}
+    .post-image{
+      width:100%;height:160px;border-radius:4px;
+      background:#eee;display:flex;align-items:center;justify-content:center;
+      color:#999;font-size:12px;overflow:hidden;
+    }
+    .post-image img{width:100%;height:100%;object-fit:cover;display:block}
+    .meta-row{display:flex;justify-content:space-between;align-items:center;margin-top:10px}
+    .meta{font-size:12px;color:var(--sub)}
+    .link{color:#2b70ff;font-weight:700;cursor:pointer}
+
+    /* Modal */
+    .overlay{
+      position:fixed;inset:0;background:rgba(0,0,0,.42);
+      display:none;z-index:100;
+    }
+    .overlay.active{display:block}
+    .sheet{
+      position:fixed;left:0;right:0;bottom:0;
+      background:var(--card);
+      border-radius:18px 18px 0 0;
+      padding:16px;
+      transform:translateY(110%);
+      transition:transform .25s ease;
+      z-index:101;
+      box-shadow:0 -10px 30px rgba(0,0,0,.18);
+    }
+    .sheet.active{transform:translateY(0)}
+    .sheet-title{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+    .sheet-title h3{margin:0;font-size:15px}
+    .x{font-weight:900;color:var(--sub);cursor:pointer}
+    .field{display:flex;flex-direction:column;gap:8px;margin-top:10px}
+    input,textarea{
+      width:100%;
+      border:1px solid var(--line);
+      border-radius:10px;
+      padding:10px 12px;
+      font-size:14px;
+      background:#fff;
+      color:var(--text);
+      outline:none;
+    }
+    textarea{min-height:92px;resize:none}
+    .hint{font-size:12px;color:var(--sub)}
+
+    /* Top fixed back btn */
+    .back{
+      position:fixed;top:15px;left:15px;z-index:200;
+      width:32px;height:32px;border-radius:50%;
+      background:rgba(0,0,0,.6);color:#fff;
+      display:flex;align-items:center;justify-content:center;
+      cursor:pointer;
+    }
+
+    /* Personas page (forced dark style) */
+    .dark-wrap{
+      min-height:100vh;
+      background:#121212;
+      color:#eaeaea;
+      padding-bottom:60px;
+    }
+    .dark-header{
+      padding:18px 15px;
+      display:flex;justify-content:space-between;align-items:center;
+      border-bottom:1px solid #2b2b2b;
+    }
+    .dark-header h2{margin:0;font-size:18px}
+    .persona-card{
+      background:#1e1e1e;
+      border:1px solid #2b2b2b;
+      border-radius:12px;
+      margin:12px 12px 0 12px;
+      padding:14px;
+      display:flex;gap:12px;
+      position:relative;
+    }
+    .persona-avatar{
+      width:56px;height:56px;border-radius:50%;
+      background:#333;background-size:cover;background-position:center;
+      flex:0 0 auto;
+    }
+    .persona-name{font-weight:900;margin:0 0 4px 0}
+    .persona-bio{margin:0;color:#b6b6b6;font-size:12px;line-height:1.4}
+    .persona-creator{margin-top:8px;font-size:11px;color:#9a9a9a}
+    .persona-actions{
+      position:absolute;right:12px;top:12px;
+      display:flex;gap:8px;
+    }
+    .mini{
+      font-size:12px;padding:6px 10px;border-radius:999px;
+      border:1px solid #3a3a3a;background:transparent;color:#d9d9d9;
+      cursor:pointer;
+    }
+    .mini.danger{border-color:rgba(255,93,93,.6);color:#ffb0b0}
+
+    /* Profile page (centered) */
+    .profile-banner{width:100%;height:180px;background:#caffbf;position:relative;overflow:hidden}
+    .profile-banner::after{
+      content:"";position:absolute;inset:0;background:rgba(255,255,255,.25);
+      backdrop-filter:blur(10px);
+    }
+    .profile-strip{
+      background:var(--card);
+      padding:0 20px 28px 20px;
+      border-bottom:1px solid var(--line);
+      text-align:center;
+      display:flex;flex-direction:column;align-items:center;
+      margin-bottom:10px;
+    }
+    .profile-avatar-wrap{margin-top:-50px;position:relative;z-index:2;margin-bottom:12px}
+    .profile-avatar{
+      width:100px;height:100px;border-radius:50%;
+      border:4px solid var(--card);
+      background:#ddd;background-size:cover;background-position:center;
+    }
+    .profile-name{font-size:22px;font-weight:900;margin:0 0 8px 0}
+    .profile-bio{margin:0;color:var(--sub);font-size:14px;max-width:85%;line-height:1.5}
+
+    /* Post detail top bar */
+    .topbar{
+      position:sticky;top:0;z-index:50;
+      background:rgba(242,244,245,.92);
+      backdrop-filter:blur(10px);
+      border-bottom:1px solid rgba(0,0,0,.06);
+      padding:10px 12px;
+      display:flex;align-items:center;justify-content:space-between;
+    }
+    .topbar-title{font-weight:900}
+    .dots{font-size:18px;line-height:18px;cursor:pointer;color:#555;padding:6px 10px}
+
+    /* comment list in detail */
+    .comment-box{
+      background:#f7f8fa;
+      padding:10px;
+      margin-top:10px;
+      font-size:13px;
+    }
+    .comment-item{padding:8px 6px;border-bottom:1px solid rgba(0,0,0,.06)}
+    .comment-item:last-child{border-bottom:none}
+    .c-name{color:#2b70ff;font-weight:900;cursor:pointer}
+    .c-content{white-space:pre-wrap}
+    .reply-line{margin-top:6px;color:var(--sub)}
+    .reply-target{color:#2b70ff;font-weight:900}
+
+    .empty{padding:18px 15px;color:var(--sub);font-size:13px}
+    .toast{
+      position:fixed;left:50%;bottom:22px;transform:translateX(-50%);
+      background:rgba(0,0,0,.78);color:#fff;
+      padding:10px 12px;border-radius:999px;
+      font-size:13px;display:none;z-index:999;
+      max-width:92%;text-align:center;
+    }
+    .toast.show{display:block}
+  </style>
+</head>
+<body>
+  <div id="toast" class="toast"></div>
+
+  <!-- HOME -->
+  <div id="page-home" class="page active">
+    <div id="unnamedBanner" class="header-banner"></div>
+
+    <div class="home-user-strip">
+      <div class="home-avatar-row">
+        <div id="unnamedAvatar" class="home-big-avatar"></div>
+        <button class="btn btn-primary" id="btnNewPost">发帖</button>
+      </div>
+      <div id="goPersonas" style="cursor:pointer">
+        <div class="home-user-name">未命名</div>
+        <div class="home-user-desc">点击进入人设卡</div>
+      </div>
+    </div>
+
+    <div class="tabs">
+      <div id="tabNew" class="tab active">最新</div>
+      <div id="tabHot" class="tab">热门</div>
+    </div>
+
+    <div id="posts"></div>
+  </div>
+
+  <!-- PERSONAS (dark) -->
+  <div id="page-personas" class="page">
+    <div class="dark-wrap">
+      <div class="back" id="backFromPersonas">&#8592;</div>
+      <div class="dark-header">
+        <h2>人设卡</h2>
+        <button class="btn btn-primary" id="btnNewPersona">创建</button>
+      </div>
+      <div id="personaList"></div>
+      <div class="empty" style="color:#9a9a9a;padding:14px 12px 0 12px">
+        说明：删除人设卡不会删除历史帖子/评论，但作者会显示为“已删除人设”，并禁止继续发言。
+      </div>
+    </div>
+  </div>
+
+  <!-- PROFILE -->
+  <div id="page-profile" class="page">
+    <div class="back" id="backFromProfile">&#8592;</div>
+    <div id="profileBanner" class="profile-banner"></div>
+    <div class="profile-strip">
+      <div class="profile-avatar-wrap"><div id="profileAvatar" class="profile-avatar"></div></div>
+      <p id="profileName" class="profile-name">用户名</p>
+      <p id="profileBio" class="profile-bio">简介...</p>
+    </div>
+    <div id="profilePosts"></div>
+  </div>
+
+  <!-- POST DETAIL -->
+  <div id="page-post" class="page">
+    <div class="topbar">
+      <div class="topbar-title">帖子</div>
+      <div class="dots" id="btnPostMenu">···</div>
+    </div>
+    <div id="postDetail"></div>
+    <div id="commentDetail"></div>
+
+    <div class="sheet-title" style="padding:12px 15px 0 15px">
+      <div class="hint" id="replyHint">发表评论</div>
+      <div class="link" id="btnReply">回复</div>
+    </div>
+  </div>
+
+  <!-- Overlay + bottom sheet (reuse) -->
+  <div id="overlay" class="overlay"></div>
+  <div id="sheet" class="sheet">
+    <div class="sheet-title">
+      <h3 id="sheetTitle">标题</h3>
+      <div class="x" id="sheetClose">关闭</div>
+    </div>
+    <div id="sheetBody"></div>
+  </div>
+
+  <script>
+    // ---- configurable placeholders
+    const CONFIG = {
+      unnamed: {
+        bannerUrl: "", // TODO: 你填“未命名”顶部背景图片直链
+        avatarUrl: ""  // TODO: 你填“未命名”头像图片直链
+      },
+      deletedPersonaName: "已删除人设"
+    };
+
+    // ---- state
+    let state = {
+      sort: "new", // "new" | "hot"
+      personas: [],
+      posts: [],
+      currentProfile: null, // persona object
+      currentPostId: null,
+      replyToCommentId: null,
+      replyToName: null
+    };
+
+    // ---- helpers
+    const $ = (id) => document.getElementById(id);
+
+    function toast(msg) {
+      const t = $("toast");
+      t.textContent = msg;
+      t.classList.add("show");
+      setTimeout(() => t.classList.remove("show"), 1800);
+    }
+
+    function escapeHtml(s) {
+      return (s || "").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;");
+    }
+
+    function setPage(id) {
+      document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
+      $(id).classList.add("active");
+      window.scrollTo(0,0);
+    }
+
+    function avatarStyle(url) {
+      if (!url) return "";
+      return `background-image:url('${escapeHtml(url)}')`;
+    }
+
+    async function api(path, opts) {
+      const res = await fetch(path, opts);
+      let data = null;
+      try { data = await res.json(); } catch {}
+      if (!res.ok) {
+        const code = data && data.error ? data.error : "HTTP_" + res.status;
+        const err = new Error(code);
+        err.code = code;
+        throw err;
+      }
+      return data;
+    }
+
+    function validateImageUrlMaybe(url) {
+      if (!url) return true;
+      try {
+        const u = new URL(url);
+        return u.protocol === "http:" || u.protocol === "https:";
+      } catch {
+        return false;
+      }
+    }
+
+    // ---- rendering
+    function renderHome() {
+      $("tabNew").classList.toggle("active", state.sort === "new");
+      $("tabHot").classList.toggle("active", state.sort === "hot");
+
+      const wrap = $("posts");
+      if (!state.posts.length) {
+        wrap.innerHTML = `<div class="empty">暂无帖子</div>`;
+        return;
+      }
+
+      wrap.innerHTML = state.posts.map(p => {
+        const img = p.image_url
+          ? `<div class="post-image"><img alt="post image" src="${escapeHtml(p.image_url)}" /></div>`
+          : "";
+
+        const avatar = p.persona_avatar_url
+          ? `<div class="avatar" style="${avatarStyle(p.persona_avatar_url)}"></div>`
+          : `<div class="avatar"></div>`;
+
+        const personaName = escapeHtml(p.persona_name);
+        const when = new Date(p.created_at + "Z").toLocaleString(); // sqlite utc -> local-ish
+
+        return `
+          <div class="post-item">
+            <div class="post-header">
+              ${avatar}
+              <div class="post-name" data-persona="${personaName}" data-persona-deleted="${p.persona_deleted ? "1":"0"}">${personaName}</div>
+              <div class="post-time">${escapeHtml(when)}</div>
+            </div>
+            <div class="post-content">${escapeHtml(p.content)}</div>
+            ${img}
+            <div class="meta-row">
+              <div class="meta">${p.reply_count} 条评论</div>
+              <div class="link" data-open-post="${p.id}">查看 / 回复</div>
+            </div>
+          </div>
+        `;
+      }).join("");
+
+      wrap.querySelectorAll("[data-open-post]").forEach(el => {
+        el.addEventListener("click", () => openPostDetail(Number(el.getAttribute("data-open-post"))));
+      });
+      wrap.querySelectorAll("[data-persona]").forEach(el => {
+        el.addEventListener("click", () => {
+          const deleted = el.getAttribute("data-persona-deleted") === "1";
+          if (deleted) return toast("该人设已删除");
+          openProfileByName(el.getAttribute("data-persona"));
+        });
+      });
+    }
+
+    function renderPersonas() {
+      const list = $("personaList");
+      const alive = state.personas.filter(p => !p.deleted_at);
+      const deleted = state.personas.filter(p => p.deleted_at);
+
+      const section = (title, items) => {
+        if (!items.length) return "";
+        return `
+          <div style="padding:12px 12px 0 12px;color:#9a9a9a;font-size:12px">${escapeHtml(title)}</div>
+          ${items.map(p => {
+            const av = p.avatar_url ? `style="${avatarStyle(p.avatar_url)}"` : "";
+            return `
+              <div class="persona-card">
+                <div class="persona-avatar" ${av}></div>
+                <div style="flex:1;min-width:0">
+                  <div class="persona-name">${escapeHtml(p.name)}</div>
+                  <div class="persona-bio">${escapeHtml(p.bio || "")}</div>
+                  <div class="persona-creator">创作者：${escapeHtml(p.creator || "")}</div>
+                </div>
+                <div class="persona-actions">
+                  <button class="mini" data-use="${escapeHtml(p.name)}">设为发帖名</button>
+                  <button class="mini danger" data-del="${p.id}">删除</button>
+                </div>
+              </div>
+            `;
+          }).join("")}
+        `;
+      };
+
+      list.innerHTML =
+        section("可用人设", alive) +
+        section("已删除（不可发言）", deleted);
+
+      list.querySelectorAll("[data-del]").forEach(btn => {
+        btn.addEventListener("click", async () => {
+          const id = btn.getAttribute("data-del");
+          const ok = confirm("确定删除该人设卡？\n（历史帖子/评论会保留，但作者会显示为“已删除人设”）");
+          if (!ok) return;
+          try {
+            await api(`/api/personas/${id}`, { method: "DELETE" });
+            await loadPersonas();
+            toast("已删除");
+          } catch (e) {
+            toast("删除失败：" + e.code);
+          }
+        });
+      });
+
+      list.querySelectorAll("[data-use]").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const name = btn.getAttribute("data-use");
+          localStorage.setItem("persona_name", name);
+          toast("已设为发帖名：" + name);
+        });
+      });
+    }
+
+    function renderProfile() {
+      const p = state.currentProfile;
+      if (!p) return;
+
+      $("profileName").textContent = p.name;
+      $("profileBio").textContent = p.bio || "";
+
+      $("profileAvatar").setAttribute("style", avatarStyle(p.avatar_url || ""));
+      // banner default: avatar blurred (we just reuse green block, but overlay with avatar as bg if exists)
+      if (p.avatar_url) {
+        $("profileBanner").style.backgroundImage = `url('${p.avatar_url.replaceAll("'","%27")}')`;
+        $("profileBanner").style.backgroundSize = "cover";
+        $("profileBanner").style.backgroundPosition = "center";
+      } else {
+        $("profileBanner").style.backgroundImage = "";
+        $("profileBanner").style.backgroundColor = "#caffbf";
+      }
+
+      const posts = state.posts.filter(x => x.persona_id === p.id);
+      const wrap = $("profilePosts");
+
+      if (!posts.length) {
+        wrap.innerHTML = `<div class="empty">Ta 还没有发过帖子</div>`;
+        return;
+      }
+
+      wrap.innerHTML = posts.map(pp => {
+        const img = pp.image_url
+          ? `<div class="post-image"><img alt="post image" src="${escapeHtml(pp.image_url)}" /></div>`
+          : "";
+        const when = new Date(pp.created_at + "Z").toLocaleString();
+
+        return `
+          <div class="post-item">
+            <div class="post-header">
+              <div class="avatar" style="${avatarStyle(p.avatar_url || "")}"></div>
+              <div class="post-name">${escapeHtml(p.name)}</div>
+              <div class="post-time">${escapeHtml(when)}</div>
+            </div>
+            <div class="post-content">${escapeHtml(pp.content)}</div>
+            ${img}
+            <div class="meta-row">
+              <div class="meta">${pp.reply_count} 条评论</div>
+              <div class="link" data-open-post="${pp.id}">查看 / 回复</div>
+            </div>
+          </div>
+        `;
+      }).join("");
+
+      wrap.querySelectorAll("[data-open-post]").forEach(el => {
+        el.addEventListener("click", () => openPostDetail(Number(el.getAttribute("data-open-post"))));
+      });
+    }
+
+    function renderPostDetail(post, comments) {
+      const pName = escapeHtml(post.persona_name);
+      const avatar = post.persona_avatar_url
+        ? `<div class="avatar" style="${avatarStyle(post.persona_avatar_url)}"></div>`
+        : `<div class="avatar"></div>`;
+
+      const img = post.image_url
+        ? `<div class="post-image"><img alt="post image" src="${escapeHtml(post.image_url)}" /></div>`
+        : "";
+
+      const when = new Date(post.created_at + "Z").toLocaleString();
+      $("postDetail").innerHTML = `
+        <div class="post-item" style="border-bottom:none">
+          <div class="post-header">
+            ${avatar}
+            <div class="post-name" id="detailPersona" style="cursor:${post.persona_deleted? "default":"pointer"}">${pName}</div>
+            <div class="post-time">${escapeHtml(when)}</div>
+          </div>
+          <div class="post-content">${escapeHtml(post.content)}</div>
+          ${img}
+          <div class="meta" style="margin-top:10px">${comments.length} 条评论</div>
+        </div>
+      `;
+
+      $("detailPersona").addEventListener("click", () => {
+        if (post.persona_deleted) return toast("该人设已删除");
+        openProfileByName(post.persona_name);
+      });
+
+      const byId = new Map(comments.map(c => [c.id, c]));
+      $("commentDetail").innerHTML = `
+        <div class="post-item">
+          <div class="hint" style="margin-bottom:10px">评论区（点某条评论可以“回复Ta”）</div>
+          <div class="comment-box">
+            ${
+              comments.length
+                ? comments.map(c => {
+                    const cName = escapeHtml(c.persona_name);
+                    const parent = c.reply_to_comment_id ? byId.get(c.reply_to_comment_id) : null;
+                    const replyLine = parent
+                      ? `<div class="reply-line"><span class="c-name">${cName}</span> 回复 <span class="reply-target">@${escapeHtml(parent.persona_name)}</span>：${escapeHtml(c.content)}</div>`
+                      : `<div><span class="c-name">${cName}</span>： <span class="c-content">${escapeHtml(c.content)}</span></div>`;
+
+                    return `
+                      <div class="comment-item" data-reply-id="${c.id}" data-reply-name="${cName}">
+                        ${replyLine}
+                        <div class="hint" style="margin-top:6px">${escapeHtml(new Date(c.created_at + "Z").toLocaleString())}</div>
+                      </div>
+                    `;
+                  }).join("")
+                : `<div class="hint">还没有评论</div>`
+            }
+          </div>
+        </div>
+      `;
+
+      $("commentDetail").querySelectorAll("[data-reply-id]").forEach(el => {
+        el.addEventListener("click", () => {
+          const id = Number(el.getAttribute("data-reply-id"));
+          const name = el.getAttribute("data-reply-name");
+          state.replyToCommentId = id;
+          state.replyToName = name;
+          $("replyHint").textContent = "回复 @" + name;
+          toast("将回复 @" + name);
+        });
+      });
+
+      // reset reply hint to default when opening detail
+      if (state.replyToCommentId == null) {
+        $("replyHint").textContent = "发表评论";
+      }
+    }
+
+    // ---- flows
+    async function loadPersonas() {
+      const data = await api("/api/personas");
+      state.personas = data.personas;
+      renderPersonas();
+    }
+
+    async function loadPosts() {
+      const data = await api("/api/posts?sort=" + encodeURIComponent(state.sort));
+      state.posts = data.posts;
+      renderHome();
+      if (state.currentProfile) renderProfile();
+    }
+
+    function openProfileByName(name) {
+      const p = state.personas.find(x => x.name.toLowerCase() === String(name).toLowerCase() && !x.deleted_at);
+      if (!p) return toast("找不到该人设");
+      state.currentProfile = p;
+      renderProfile();
+      setPage("page-profile");
+    }
+
+    async function openPostDetail(id) {
+      try {
+        const data = await api("/api/posts/" + id);
+        state.currentPostId = id;
+        state.replyToCommentId = null;
+        state.replyToName = null;
+        $("replyHint").textContent = "发表评论";
+        renderPostDetail(data.post, data.comments);
+        setPage("page-post");
+      } catch (e) {
+        toast("打开失败：" + e.code);
+      }
+    }
+
+    // ---- sheets (modal)
+    function openSheet(title, bodyHtml) {
+      $("sheetTitle").textContent = title;
+      $("sheetBody").innerHTML = bodyHtml;
+      $("overlay").classList.add("active");
+      $("sheet").classList.add("active");
+    }
+
+    function closeSheet() {
+      $("overlay").classList.remove("active");
+      $("sheet").classList.remove("active");
+      $("sheetBody").innerHTML = "";
+    }
+
+    // ---- actions
+    function openNewPersonaSheet() {
+      openSheet("创建人设卡", `
+        <div class="field">
+          <input id="fPersonaName" placeholder="名字（唯一）" />
+          <input id="fPersonaAvatar" placeholder="头像链接（可选）" />
+          <textarea id="fPersonaBio" placeholder="简介（可选）"></textarea>
+          <input id="fPersonaCreator" placeholder="创作者（可选）" />
+          <div class="hint">提示：头像/背景建议使用可公开访问的图片直链。</div>
+          <button class="btn btn-primary" id="doCreatePersona">创建</button>
+        </div>
+      `);
+
+      $("doCreatePersona").addEventListener("click", async () => {
+        const name = $("fPersonaName").value.trim();
+        const avatar_url = $("fPersonaAvatar").value.trim();
+        const bio = $("fPersonaBio").value.trim();
+        const creator = $("fPersonaCreator").value.trim();
+
+        if (!name) return toast("请填写名字");
+        if (avatar_url && !validateImageUrlMaybe(avatar_url)) return toast("头像链接不合法");
+
+        try {
+          await api("/api/personas", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ name, avatar_url, bio, creator })
+          });
+          closeSheet();
+          await loadPersonas();
+          toast("创建成功");
+        } catch (e) {
+          const map = {
+            NAME_EXISTS: "名字已存在",
+            NAME_RESERVED: "该名字被保留",
+            AVATAR_URL_INVALID: "头像链接不合法"
+          };
+          toast(map[e.code] || ("创建失败：" + e.code));
+        }
+      });
+    }
+
+    function openNewPostSheet() {
+      const defaultName = localStorage.getItem("persona_name") || "";
+      openSheet("发帖", `
+        <div class="field">
+          <input id="fPostName" placeholder="名字（必须已存在人设卡）" value="${escapeHtml(defaultName)}"/>
+          <textarea id="fPostContent" placeholder="帖子内容（必填）"></textarea>
+          <input id="fPostImage" placeholder="图片链接（可选，每帖1张）" />
+          <div class="hint">不会获取图片链接？把链接粘贴到浏览器能直接显示图片就可以。</div>
+          <button class="btn btn-primary" id="doCreatePost">发送</button>
+        </div>
+      `);
+
+      $("doCreatePost").addEventListener("click", async () => {
+        const persona_name = $("fPostName").value.trim();
+        const content = $("fPostContent").value.trim();
+        const image_url = $("fPostImage").value.trim();
+
+        if (!persona_name) return toast("请填写名字");
+        if (!content) return toast("请填写内容");
+        if (image_url && !validateImageUrlMaybe(image_url)) return toast("图片链接不合法");
+
+        try {
+          await api("/api/posts", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ persona_name, content, image_url })
+          });
+          localStorage.setItem("persona_name", persona_name);
+          closeSheet();
+          await loadPosts();
+          toast("已发布");
+        } catch (e) {
+          const map = {
+            PERSONA_NOT_FOUND: "没有该人设卡，请先创建人设卡",
+            IMAGE_URL_INVALID: "图片链接不合法"
+          };
+          toast(map[e.code] || ("发布失败：" + e.code));
+        }
+      });
+    }
+
+    function openReplySheet() {
+      if (!state.currentPostId) return;
+
+      const defaultName = localStorage.getItem("persona_name") || "";
+      const title = state.replyToName ? ("回复 @" + state.replyToName) : "发表评论";
+
+      openSheet(title, `
+        <div class="field">
+          <input id="fCName" placeholder="名字（必须已存在人设卡）" value="${escapeHtml(defaultName)}"/>
+          <textarea id="fCContent" placeholder="评论内容（必填）"></textarea>
+          <div class="hint">${state.replyToName ? "将以“XX 回复 @YY”形式展示" : "直接评论帖子"}</div>
+          <button class="btn btn-primary" id="doSendComment">发送</button>
+        </div>
+      `);
+
+      $("doSendComment").addEventListener("click", async () => {
+        const persona_name = $("fCName").value.trim();
+        const content = $("fCContent").value.trim();
+        if (!persona_name) return toast("请填写名字");
+        if (!content) return toast("请填写内容");
+
+        try {
+          await api("/api/comments", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              post_id: state.currentPostId,
+              persona_name,
+              content,
+              reply_to_comment_id: state.replyToCommentId
+            })
+          });
+          localStorage.setItem("persona_name", persona_name);
+          closeSheet();
+          toast("已发送");
+          await openPostDetail(state.currentPostId);
+        } catch (e) {
+          const map = {
+            PERSONA_NOT_FOUND: "没有该人设卡，请先创建人设卡",
+            REPLY_TARGET_INVALID: "回复目标无效",
+            POST_NOT_FOUND: "帖子不存在"
+          };
+          toast(map[e.code] || ("发送失败：" + e.code));
+        }
+      });
+    }
+
+    function openPostMenu() {
+      if (!state.currentPostId) return;
+      openSheet("帖子操作", `
+        <div class="field">
+          <button class="btn btn-danger" id="doDeletePost">删除帖子</button>
+          <button class="btn btn-ghost" id="doCancelMenu">取消</button>
+          <div class="hint">删除帖子会连同该帖评论一起删除。</div>
+        </div>
+      `);
+
+      $("doCancelMenu").addEventListener("click", closeSheet);
+      $("doDeletePost").addEventListener("click", async () => {
+        const ok = confirm("确定删除该帖子？\n（该帖评论将一起删除）");
+        if (!ok) return;
+        try {
+          await api("/api/posts/" + state.currentPostId, { method: "DELETE" });
+          closeSheet();
+          toast("已删除");
+          state.currentPostId = null;
+          state.replyToCommentId = null;
+          state.replyToName = null;
+          await loadPosts();
+          setPage("page-home");
+        } catch (e) {
+          toast("删除失败：" + e.code);
+        }
+      });
+    }
+
+    // ---- init + wiring
+    function applyUnnamedConfig() {
+      if (CONFIG.unnamed.bannerUrl) {
+        $("unnamedBanner").style.backgroundImage = `url('${CONFIG.unnamed.bannerUrl.replaceAll("'","%27")}')`;
+        $("unnamedBanner").style.backgroundSize = "cover";
+        $("unnamedBanner").style.backgroundPosition = "center";
+      }
+      if (CONFIG.unnamed.avatarUrl) {
+        $("unnamedAvatar").style.backgroundImage = `url('${CONFIG.unnamed.avatarUrl.replaceAll("'","%27")}')`;
+      }
+    }
+
+    $("goPersonas").addEventListener("click", async () => {
+      await loadPersonas();
+      setPage("page-personas");
+    });
+    $("unnamedAvatar").addEventListener("click", async () => {
+      await loadPersonas();
+      setPage("page-personas");
+    });
+
+    $("backFromPersonas").addEventListener("click", () => setPage("page-home"));
+    $("backFromProfile").addEventListener("click", () => setPage("page-home"));
+
+    $("tabNew").addEventListener("click", async () => {
+      state.sort = "new";
+      await loadPosts();
+    });
+    $("tabHot").addEventListener("click", async () => {
+      state.sort = "hot";
+      await loadPosts();
+    });
+
+    $("btnNewPersona").addEventListener("click", openNewPersonaSheet);
+    $("btnNewPost").addEventListener("click", openNewPostSheet);
+
+    $("overlay").addEventListener("click", closeSheet);
+    $("sheetClose").addEventListener("click", closeSheet);
+
+    $("btnReply").addEventListener("click", openReplySheet);
+    $("btnPostMenu").addEventListener("click", openPostMenu);
+
+    // bootstrap
+    (async function main() {
+      applyUnnamedConfig();
+      try {
+        await loadPersonas();
+        await loadPosts();
+      } catch (e) {
+        toast("加载失败：" + (e.code || "UNKNOWN"));
+      }
+      setPage("page-home");
+    })();
+  </script>
+</body>
+</html>
