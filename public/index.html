@@ -336,8 +336,8 @@
     // ---- configurable placeholders
     const CONFIG = {
       unnamed: {
-        bannerUrl: "https://test.fukit.cn/autoupload/fr/FzCJAyZGwrZMwq6-GIngvwuQmtsuSlwfHsF6mEViUniyl5f0KlZfm6UsKj-HyTuv/20260130/9HWa/1920X960/1769753272181.png/webp", // TODO: 你填“未命名”顶部背景图片直链
-        avatarUrl: "https://test.fukit.cn/autoupload/fr/FzCJAyZGwrZMwq6-GIngvwuQmtsuSlwfHsF6mEViUniyl5f0KlZfm6UsKj-HyTuv/20260130/vNoa/512X512/1769762772145.png/webp"  // TODO: 你填“未命名”头像图片直链
+        bannerUrl: "https://test.fukit.cn/autoupload/f/7f1QQ2iXbgIB2Uaxn62ed9iO_OyvX7mIgxFBfDMDErs/20260130/CDjd/1920X960/1769768945378.png/webp", // TODO: 你填“未命名”顶部背景图片直链
+        avatarUrl: "https://test.fukit.cn/autoupload/f/7f1QQ2iXbgIB2Uaxn62ed9iO_OyvX7mIgxFBfDMDErs/20260130/8GYQ/512X512/1769762772145.png/webp"  // TODO: 你填“未命名”头像图片直链
       },
       deletedPersonaName: "已删除人设"
     };
@@ -489,7 +489,7 @@
       list.querySelectorAll("[data-del]").forEach(btn => {
         btn.addEventListener("click", async () => {
           const id = btn.getAttribute("data-del");
-          const ok = confirm("确定删除该人设卡？\n（历史帖子/评论会保留，但作者会显示为“已删除人设”）");
+          const ok = confirm("确定删除该人设卡？\n（历史帖子/评论会保留，但会显示为“已删除人设”）");
           if (!ok) return;
           try {
             await api(`/api/personas/${id}`, { method: "DELETE" });
