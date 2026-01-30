@@ -489,7 +489,7 @@
       list.querySelectorAll("[data-del]").forEach(btn => {
         btn.addEventListener("click", async () => {
           const id = btn.getAttribute("data-del");
-          const ok = confirm("确定删除该人设卡？\n（历史帖子/评论会保留，但作者会显示为“已删除人设”）");
+          const ok = confirm("确定删除该人设卡？\n（历史帖子/评论会保留，但主页会显示成“已经删除人设”）");
           if (!ok) return;
           try {
             await api(`/api/personas/${id}`, { method: "DELETE" });
