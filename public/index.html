@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
-  <title>论坛原型</title>
+  <title>OC社论坛</title>
   <style>
     :root{
       --bg:#f2f4f5;
@@ -268,7 +268,7 @@
       </div>
       <div id="goPersonas" style="cursor:pointer">
         <div class="home-user-name">未命名</div>
-        <div class="home-user-desc">点击进入人设卡</div>
+        <div class="home-user-desc">此用户很神秘……</div>
       </div>
     </div>
 
@@ -290,7 +290,7 @@
       </div>
       <div id="personaList"></div>
       <div class="empty" style="color:#9a9a9a;padding:14px 12px 0 12px">
-        说明：删除人设卡不会删除历史帖子/评论，但作者会显示为“已删除人设”，并禁止继续发言。
+        删除人设卡不会删除历史帖子/评论，但无法用人设卡继续发贴。
       </div>
     </div>
   </div>
@@ -336,8 +336,8 @@
     // ---- configurable placeholders
     const CONFIG = {
       unnamed: {
-        bannerUrl: "", // TODO: 你填“未命名”顶部背景图片直链
-        avatarUrl: ""  // TODO: 你填“未命名”头像图片直链
+        bannerUrl: "https://test.fukit.cn/autoupload/f/7f1QQ2iXbgIB2Uaxn62ed9iO_OyvX7mIgxFBfDMDErs/20260130/CDjd/1920X960/1769768945378.png/webp", // TODO: 你填“未命名”顶部背景图片直链
+        avatarUrl: "https://test.fukit.cn/autoupload/f/7f1QQ2iXbgIB2Uaxn62ed9iO_OyvX7mIgxFBfDMDErs/20260130/8GYQ/512X512/1769762772145.png/webp"  // TODO: 你填“未命名”头像图片直链
       },
       deletedPersonaName: "已删除人设"
     };
